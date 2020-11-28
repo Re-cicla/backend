@@ -1,0 +1,3 @@
+FROM gradle:6.7.1-jdk8
+WORKDIR /app
+EXPOSE 8080
