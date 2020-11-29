@@ -25,6 +25,11 @@ public class ReciclaApplication {
         return new ResponseEntity(containers, HttpStatus.OK);
     }
 
+    @GetMapping("/manolo")
+    public String manolo(){
+        return "Manolo crack! SOFTWARE ENGINEER";
+    }
+
     public static void main(String[] args) {
         SpringApplication.run(ReciclaApplication.class, args);
     }
