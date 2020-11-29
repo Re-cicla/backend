@@ -8,8 +8,10 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.cloud.automl.v1.*;
+import com.google.protobuf.ByteString;
 import com.sun.org.apache.xpath.internal.operations.Plus;
 import es.recicla.model.Container;
+import es.recicla.model.ContainerType;
 import es.recicla.model.Predict;
 import es.recicla.service.ContainerService;
 import io.grpc.netty.shaded.io.netty.handler.codec.base64.Base64Decoder;
@@ -27,7 +29,9 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Base64;
 import java.util.Collections;
+import java.util.Formatter;
 import java.util.List;
 
 @SpringBootApplication
@@ -61,7 +65,10 @@ public class ReciclaApplication {
             try (PredictionServiceClient client = PredictionServiceClient.create()) {
                 // Get the full path of the model.
                 ModelName name = ModelName.of(projectId, "us-central1", modelId);
-                Image image = Image.newBuilder().setImageBytes( imageReduced).build();
+
+                byte[] decoded = Base64.getDecoder().decode(imageReduced);
+                ByteString byteString = ByteString.copyFrom(decoded);
+                Image image = Image.newBuilder().setImageBytes( byteString).build();
                 ExamplePayload payload = ExamplePayload.newBuilder().setImage(image).build();
                 PredictRequest predictRequest =
                         PredictRequest.newBuilder()
@@ -71,61 +78,22 @@ public class ReciclaApplication {
                                         "score_threshold", "0.8") // [0.0-1.0] Only produce results higher than this value
                                 .build();
 
-                PredictResponse response2 = client.predict(predictRequest);
+                PredictResponse predictResponse = client.predict(predictRequest);
 
-                for (AnnotationPayload annotationPayload : response2.getPayloadList()) {
-                    System.out.format("Predicted class name: %s\n", annotationPayload.getDisplayName());
-                    System.out.format(
-                            "Predicted class score: %.2f\n", annotationPayload.getClassification().getScore());
+                for (AnnotationPayload annotationPayload : predictResponse.getPayloadList()) {
+                    String containerType = annotationPayload.getDisplayName() == "O" ?
+                            ContainerType.ORGANIC.toString() : ContainerType.NO_ORGANIC.toString();
+
+                    JSONObject jsonResponse = new JSONObject();
+                    jsonResponse.put("type",containerType);
+                    jsonResponse.put("type_tst",annotationPayload.getDisplayName());
+                    jsonResponse.put("score", annotationPayload.getClassification().getScore());
+                    //"Predicted class score: %.2f\n", );
+                    response = jsonResponse.toString();
                 }
-            }
-
-             /*
-            try {
-               HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-                JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-
-                GoogleCredential credential = GoogleCredential.fromStream(new FileInputStream("MyProject-1234.json"))
-                        .createScoped(Collections.singleton(PlusScopes.PLUS_ME));
-
-                plus = new Plus.Builder(httpTransport, jsonFactory, credential)
-                        .setApplicationName(APPLICATION_NAME).build();
-
-                url = new URL(this.predictUrl);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestProperty("Authorization","Bearer "+this.eduPass);
-                conn.setRequestProperty("Content-Type","application/json");
-                conn.setRequestMethod("POST");
-                conn.setDoOutput(true);
-
-                JSONObject imageBytes = new JSONObject();
-                JSONObject image   = new JSONObject();
-                JSONObject payload = new JSONObject();
-
-                imageBytes.put("imageBytes",imageReduced);
-                image.put("image", imageBytes.toString());
-                payload.put("payload", image.toString());
-
-                OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-                wr.write(payload.toString());
-                wr.flush();
-
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String output;
-
-                StringBuffer responseBuffer = new StringBuffer();
-                while ((output = in.readLine()) != null) {
-                    responseBuffer.append(output);
-                }
-
-                in.close();
-                response = responseBuffer.toString();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            */
         }
         return response;
     }
