@@ -12,10 +12,10 @@ public class ContainerRepository {
     public List<Container> findAll(){
         ArrayList<Container> list= new ArrayList<Container>();
 
-        list.add(new Container("XX1", ContainerType.ORGANIC));
-        list.add(new Container("XX2", ContainerType.NO_ORGANIC));
-        list.add(new Container("XX3", ContainerType.NO_ORGANIC));
-        list.add(new Container("XX4", ContainerType.ORGANIC));
+        list.add(new Container("XX1", ContainerType.ORGANICO));
+        list.add(new Container("XX2", ContainerType.RESIDUO));
+        list.add(new Container("XX3", ContainerType.RESIDUO));
+        list.add(new Container("XX4", ContainerType.ORGANICO));
 
         return list;
     }

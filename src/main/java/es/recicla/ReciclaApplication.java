@@ -1,20 +1,11 @@
 package es.recicla;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.cloud.automl.v1.*;
 import com.google.protobuf.ByteString;
-import com.sun.org.apache.xpath.internal.operations.Plus;
 import es.recicla.model.Container;
 import es.recicla.model.ContainerType;
 import es.recicla.model.Predict;
 import es.recicla.service.ContainerService;
-import io.grpc.netty.shaded.io.netty.handler.codec.base64.Base64Decoder;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Base64;
-import java.util.Collections;
-import java.util.Formatter;
 import java.util.List;
 
 @SpringBootApplication
@@ -81,8 +68,8 @@ public class ReciclaApplication {
                 PredictResponse predictResponse = client.predict(predictRequest);
 
                 for (AnnotationPayload annotationPayload : predictResponse.getPayloadList()) {
-                    String containerType = annotationPayload.getDisplayName() == "O" ?
-                            ContainerType.ORGANIC.toString() : ContainerType.NO_ORGANIC.toString();
+                    String containerType = "O".equals(annotationPayload.getDisplayName()) ?
+                            ContainerType.ORGANICO.toString() : ContainerType.RESIDUO.toString();
 
                     JSONObject jsonResponse = new JSONObject();
                     jsonResponse.put("type",containerType);
@@ -100,7 +87,7 @@ public class ReciclaApplication {
 
     @CrossOrigin
     @GetMapping("/containers/{type}")
-    public ResponseEntity<Container> container(@PathVariable String type){
+    public ResponseEntity<Container> container(@PathVariable String type, @RequestParam String location){
         LOGGER.info("REQUESTED");
         List<Container> containers = containerService.listByContainerType(type);
         return new ResponseEntity(containers, HttpStatus.OK);
