@@ -27,7 +27,7 @@ public class ReciclaApplication {
 
     @GetMapping("/manolo")
     public String manolo(){
-        return "Manolo crack! SOFTWARE ENGINEER";
+        return "8===========D Manolo";
     }
 
     public static void main(String[] args) {
