@@ -15,6 +15,7 @@ public class ContainerRepository {
         list.add(new Container("XX1", ContainerType.ORGANIC));
         list.add(new Container("XX2", ContainerType.NO_ORGANIC));
         list.add(new Container("XX3", ContainerType.NO_ORGANIC));
+        list.add(new Container("XX4", ContainerType.ORGANIC));
 
         return list;
     }

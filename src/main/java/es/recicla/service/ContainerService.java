@@ -21,4 +21,10 @@ public class ContainerService {
         return list;
     }
 
+    public List<Container> listByContainerType(String type) {
+        Iterable<Container> users = repository.findAll();
+        List<Container> list = new ArrayList<Container>();
+        users.forEach(list::add);
+        return list;
+    }
 }
